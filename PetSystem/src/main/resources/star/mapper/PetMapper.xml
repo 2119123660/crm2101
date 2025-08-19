@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  1 
+  namespace : 命名空间 ,与实体类名同名(包名.类名)
+  <mapper namespace="edu.hebeu.pojo.Emp">
+-->
+<!-- 2 使用mapper接口
+  namespace : 与mapper接口同包同名
+-->
+<mapper namespace="star.mapper.PetMapper">
+
+    <select id="getPetByParam" resultMap="getPetInfo">
+        select * from pet p left join pet_type pt on p.pet_type_id=pt.type_id
+        <where>
+            <if test="petBreed != null and petBreed !=''">
+                and p.pet_breed like concat("%",#{petBreed},"%")
+            </if>
+            <if test="petTypeId != null and petTypeId !='-1'">
+                and p.pet_type_id =#{petTypeId}
+            </if>
+        </where>
+    </select>
+    <resultMap id="getPetInfo" type="Pet" autoMapping="true">
+        <id column="pet_id" property="petId"></id>
+        <association property="petType" javaType="PetType" autoMapping="true">
+<!--            <id column="type_id" property="typeId"></id>-->
+<!--            <result column="type_name" property="typeName"></result>-->
+        </association>
+    </resultMap>
+
+</mapper>

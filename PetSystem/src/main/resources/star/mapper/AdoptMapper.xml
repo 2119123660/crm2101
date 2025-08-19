@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  1 
+  namespace : 命名空间 ,与实体类名同名(包名.类名)
+  <mapper namespace="edu.hebeu.pojo.Emp">
+-->
+<!-- 2 使用mapper接口
+  namespace : 与mapper接口同包同名
+-->
+<mapper namespace="star.mapper.AdoptMapper">
+    <select id="getAdoptListByParam" resultMap="getAdoptInfo">
+        select a.*, u.*, p.* from adopt a
+        join user u on a.adopt_user_id = u.user_id
+        join pet p on a.adopt_pet_id = p.pet_id
+    </select>
+    <resultMap id="getAdoptInfo" type="Adopt" autoMapping="true">
+        <id column="adopt_id" property="adoptId"></id>
+        <association property="adoptUser" javaType="User" autoMapping="true">
+        </association>
+        <association property="adoptPet" javaType="Pet" autoMapping="true"></association>
+    </resultMap>
+
+</mapper>

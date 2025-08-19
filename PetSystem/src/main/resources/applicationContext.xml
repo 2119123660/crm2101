@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+		https://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+		https://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx
+		https://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/task
+		https://www.springframework.org/schema/task/spring-task.xsd">
+    <!--注解开发-->
+    <!--1、开启注解开发扫描 指定扫描包路径-->
+    <context:component-scan base-package="star"></context:component-scan>
+    <!--2、加载数据库资源文件-->
+    <context:property-placeholder location="classpath:database.properties"></context:property-placeholder>
+    <!--3、创建连接池Druid对象-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="${driver}"></property>
+        <property name="url" value="${url}"></property>
+        <property name="username" value="${uname}"></property>
+        <property name="password" value="${password}"></property>
+    </bean>
+    <!--4、创建SqlSessionFactoryBean 必须注入dataSource-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+        <property name="configLocation" value="classpath:mybatis_conf.xml"></property>
+    </bean>
+    <!--5、指定mapper接口的包路径，Spring扫描包路径下面所有mapper接口生成代理对象-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="star.mapper"></property>
+    </bean>
+    <!--6、配置事务管理器对象 id必须transactionManager-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+    <!--7.把事务管理器对象配置通知  方法名称要求规范-->
+    <tx:advice id="txAdivce" transaction-manager="transactionManager">
+        <tx:attributes>
+            <!--isolation:事务的隔离级别 默认使用数据库的隔离级别 4个
+            READ_UNCOMMITTED 脏读
+            READ_COMMITTED 读提交 oracle
+            REPEATABLE_READ 可重复读 mysql
+            SERIALIZABLE 效率低-->
+            <!--propagation：事务传播特性 7个  增删改方法需要事务处理
+                SUPPORTS：支持事务的处理，有事务就使用事务处理，没有就不使用事务处理
+                NOT_SUPPORTED：不支持事务处理，有事务也挂起不用，
+                REQUIRED：支持事务处理，有事务使用，没有话开启新的事务处理
+            -->
+            <tx:method name="add*" isolation="REPEATABLE_READ" propagation="REQUIRED"/>
+            <tx:method name="update*" isolation="REPEATABLE_READ" propagation="REQUIRED"/>
+            <tx:method name="delete*" isolation="REPEATABLE_READ" propagation="REQUIRED"/>
+            <tx:method name="get*" isolation="REPEATABLE_READ" propagation="REQUIRED"/>
+            <tx:method name="select*" isolation="REPEATABLE_READ" propagation="NOT_SUPPORTED"/>
+        </tx:attributes>
+    </tx:advice>
+    <!--8、把事务通知应用到Service层-->
+    <aop:config>
+        <!--配置切入点-->
+        <aop:pointcut id="pc" expression="execution(* star.service.*.*(..))"/>
+        <!--把事务通知应用到切入点-->
+        <aop:advisor advice-ref="txAdivce" pointcut-ref="pc"></aop:advisor>
+    </aop:config>
+    <!--<tx:annotation-driven transaction-manager="transactionManager"></tx:annotation-driven>-->
+    <!--开启注解的任务调用-->
+    <task:annotation-driven></task:annotation-driven>
+
+</beans>
